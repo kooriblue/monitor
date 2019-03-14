@@ -1,0 +1,28 @@
+export default {
+    "device": '设备',
+    "device.query": '查询设备',
+
+    "device.ad-id": 'Ad ID',
+    "device.api-version-code": 'API版本号',
+    "device.app-bundle-id": 'App Bundle ID',
+    "device.app-version-code": 'App版本号',
+    "device.app-version-name": 'App版本名',
+    "device.channel-id": '渠道id',
+    "device.client-message": '客户留言',
+    "device.device-id": '设备id',
+    "device.is-pro": 'Is Pro',
+    "device.jailbreak-flag": '越狱标志',
+    "device.last-report-time": '最后报告时间',
+    "device.manufacturer": '制造商',
+    "device.operator-name": '操作者名',
+    "device.os-device-code": 'OS设备号',
+    "device.os-name": 'OS名',
+    "device.os-version": 'OS版本',
+    "device.phone-model": '手机型号',
+    "device.platform": '平台',
+    "device.request-count": '需求数量',
+
+    "device.no-device": '设备不存在',
+    "device.fail.query-device-by-user-id": '获取设备信息失败',
+    "device.warn.empty-selection": '没有选中任何条件',
+}
