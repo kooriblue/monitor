@@ -1,0 +1,20 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+front/node_modules
+server/node_modules
+
+# production
+front/dist
+
+# misc
+
+front/package-lock.json
+
+# visual studio code
+
+front/.temp/**
+
+# umi
+
+# screenshot
