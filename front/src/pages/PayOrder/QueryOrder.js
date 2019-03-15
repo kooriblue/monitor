@@ -1,6 +1,7 @@
 //查询订单
 
 import React, { PureComponent } from 'react';
+import { connect } from 'dva';
 import { formatMessage, FormattedMessage } from 'umi/locale';
 import {
     Card, Input, Button, Form, Table, DatePicker,
@@ -16,7 +17,6 @@ import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './QueryOrder.less';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
-import router from 'umi/router';
 moment.locale('zh-cn'); 
 
 const FormItem = Form.Item;
@@ -24,6 +24,11 @@ const Option = Select.Option;
 const RangePicker = DatePicker.RangePicker;
 const TextArea = Input.TextArea;
 
+@connect(({ appinfo, payorder, loading }) => ({
+    appinfo,
+    payorder,
+    quering: loading.effects['payorder/query'],
+}))
 @Form.create()
 class QueryOrder extends PureComponent {
 
@@ -35,7 +40,7 @@ class QueryOrder extends PureComponent {
         orderData: [],  //表格数据
         pagination: {},  //分页
         loading: false,
-        app: [], //应用信息
+        appInfo: [], //应用信息
         curRecord: {}, //被查询详情的记录
         curUserExpiredTime: 0, //被查询详情的订单的用户的过期时间
         curProductInfo: {}, //被查询详情的订单对应的商品信息
@@ -50,6 +55,48 @@ class QueryOrder extends PureComponent {
 
         refundModalVisible: false,
         pwdModalVisible: false,
+    }
+
+    //初始化，获取当天的订单数据和应用列表
+    componentDidMount() {
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'appinfo/appinfo',
+        });
+        // reqwest({
+        //     url: '/proxy/payorder/getAppInfo',
+        //     method: 'post',
+        //     type: 'json',
+        // }).then((data) => {
+        //     if (typeof(data.response) == "string") {
+        //         var res = JSON.parse(data.response);
+                    
+        //         this.setState({
+        //             app: res.data,
+        //         });
+        //     } else {
+        //         message.error(formatMessage({ id: "app.fail-get-app-list" }), 1);
+        //     }
+            
+        // });
+
+        var date = new Date();
+        var month = ((date.getMonth()+1) < 10) ? ('0'+(date.getMonth()+1)) : (date.getMonth()+1);
+        var day = (date.getDate() < 10) ? ('0'+date.getDate()) : date.getDate();
+        var start = date.getFullYear() + '-' + month + '-' + day + ' 00:00:00';
+        var end = date.getFullYear() + '-' + month + '-' + day + ' 23:59:59';
+
+        this.fetch({
+            startTime: start,
+            endTime: end,
+            appname: '',
+            currency: ''
+        });
+
+        this.setState({
+            startTime: start,
+            endTime: end,
+        })
     }
 
     //处理点击订单详情事件
@@ -474,6 +521,9 @@ class QueryOrder extends PureComponent {
     renderRecords = () => {
         const { 
             form: { getFieldDecorator },
+            appinfo,
+            payorder,
+            quering
         } = this.props;
         
         var columns = [
@@ -591,14 +641,14 @@ class QueryOrder extends PureComponent {
                                 <Col md={8} sm={24}>
                                     <FormItem label={<FormattedMessage id="payorder.application" />}>
                                         {getFieldDecorator('appname', { initialValue: "" })(
-                                            this.state.app.length == 0 ? (
+                                            appinfo.appInfo.length == 0 ? (
                                                 <Select placeholder={formatMessage({ id: "payorder.placeholder.app" })} >
                                                     <Option value=""><FormattedMessage id="payorder.option" /></Option>
                                                 </Select>
                                             ) : (
                                                 <Select placeholder={formatMessage({ id: "payorder.placeholder.app" })} >
                                                     <Option value=""><FormattedMessage id="payorder.statistics.all-app" /></Option>
-                                                    {this.state.app.map((item, index) => {
+                                                    {appinfo.appInfo.map((item, index) => {
                                                             return <Option value={item.appBundleId}>{item.appName}</Option>
                                                         })
                                                     }
@@ -634,9 +684,9 @@ class QueryOrder extends PureComponent {
                     <div>
                         <Table
                             columns={columns}
-                            dataSource={this.state.orderData}
-                            pagination={this.state.pagination}
-                            loading={this.state.loading}
+                            dataSource={payorder.orderData}
+                            pagination={payorder.pagination}
+                            loading={quering}
                             onChange={this.handleTableChange}
                             scroll={{ x: 1200, y: 600 }}
                         />
@@ -648,38 +698,53 @@ class QueryOrder extends PureComponent {
 
     //根据页码请求数据，默认获取前十条数据
     fetch = (params = {}) => {
-        this.setState({ loading: true });
-        reqwest({
-            url: '/proxy/payorder/getOrderInfo',
-            method: 'post',
-            data: {
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'payorder/query',
+            payload: {
                 page: 1,
                 size: 10,
                 ...params,
-            },
-            type: 'json',
-        }).then((data) => {
-            const pagination = { ...this.state.pagination };
-            var res = JSON.parse(data.response);
-            pagination.total = res.data.pageInfo.total;
+            }
+        })
+        // this.setState({ loading: true });
+        // reqwest({
+        //     url: '/proxy/payorder/getOrderInfo',
+        //     method: 'post',
+        //     data: {
+        //         page: 1,
+        //         size: 10,
+        //         ...params,
+        //     },
+        //     type: 'json',
+        // }).then((data) => {
+        //     const pagination = { ...this.state.pagination };
+        //     var res = JSON.parse(data.response);
+        //     pagination.total = res.data.pageInfo.total;
 
-            var totalMoney = res.data.summary.totalMoney * 1.0 / 100;
-            var total = totalMoney.toFixed(2);
-            this.setState({
-                loading: false,
-                orderData: res.data.pageInfo.list,
-                pagination,
-                count: res.data.summary.count,
-                totalMoney: total,
-            });
-        });
+        //     var totalMoney = res.data.summary.totalMoney * 1.0 / 100;
+        //     var total = totalMoney.toFixed(2);
+        //     this.setState({
+        //         loading: false,
+        //         orderData: res.data.pageInfo.list,
+        //         pagination,
+        //         count: res.data.summary.count,
+        //         totalMoney: total,
+        //     });
+        // });
     };
 
     //处理换页
     handleTableChange = (pagination, filters, sorter) => {
-        const pager = { ...this.state.pagination };
+        const { payorder, dispatch } = this.props;
+        const pager = { ...payorder.pagination };
         pager.current = pagination.current;
-        this.setState({ pagination: pager });
+        dispatch({
+            type: 'payorder/changeState',
+            payload: {
+                pagination: pager
+            }
+        })
         this.fetch({
             page: pagination.current,
             startTime: this.state.startTime,
@@ -688,44 +753,6 @@ class QueryOrder extends PureComponent {
             currency: this.state.currency,
         });
     };
-
-    //初始化，获取当天的订单数据和应用列表
-    componentDidMount() {
-        reqwest({
-            url: '/proxy/payorder/getAppInfo',
-            method: 'post',
-            type: 'json',
-        }).then((data) => {
-            if (typeof(data.response) == "string") {
-                var res = JSON.parse(data.response);
-                    
-                this.setState({
-                    app: res.data,
-                });
-            } else {
-                message.error(formatMessage({ id: "app.fail-get-app-list" }), 1);
-            }
-            
-        });
-
-        var date = new Date();
-        var month = ((date.getMonth()+1) < 10) ? ('0'+(date.getMonth()+1)) : (date.getMonth()+1);
-        var day = (date.getDate() < 10) ? ('0'+date.getDate()) : date.getDate();
-        var start = date.getFullYear() + '-' + month + '-' + day + ' 00:00:00';
-        var end = date.getFullYear() + '-' + month + '-' + day + ' 23:59:59';
-
-        this.fetch({
-            startTime: start,
-            endTime: end,
-            appname: '',
-            currency: ''
-        });
-
-        this.setState({
-            startTime: start,
-            endTime: end,
-        })
-    }
 
     //处理查询
     handleSearch = e => {
@@ -745,7 +772,6 @@ class QueryOrder extends PureComponent {
                 })
                 
                 this.fetch({
-                    page: 1,
                     startTime: ((typeof(timeRange) == "undefined")? st:timeRange[0].format('YYYY-MM-DD HH:mm:ss')),
                     endTime: ((typeof(timeRange) == "undefined")? en:timeRange[1].format('YYYY-MM-DD HH:mm:ss')),
                     appname: (((values.appname === null) || (typeof(values.appname) == "undefined"))? '':values.appname),
@@ -757,6 +783,7 @@ class QueryOrder extends PureComponent {
 
     //渲染统计信息
     renderSummary = () => {
+        const { payorder } = this.props;
         return (
             <div>
                 <Card className={styles.summary} bordered={false}>
@@ -765,7 +792,7 @@ class QueryOrder extends PureComponent {
                             <div>
                                 <div><FormattedMessage id="payorder.summary.count" /></div>
                                 <div className={styles.money}>
-                                    <div className={styles.total}>{this.state.count}</div>
+                                    <div className={styles.total}>{payorder.pagination.total}</div>
                                     <div className={styles.yuan}><FormattedMessage id="payorder.summary.bi" /></div>
                                 </div>
                             </div>
@@ -774,7 +801,7 @@ class QueryOrder extends PureComponent {
                             <div>
                                 <div><FormattedMessage id="payorder.summary.total-money" /></div>
                                 <div className={styles.money}>
-                                    <div className={styles.total}>{this.state.totalMoney}</div>
+                                    <div className={styles.total}>{payorder.totalMoney}</div>
                                     <div className={styles.yuan}><FormattedMessage id="payorder.summary.yuan" /></div>
                                 </div>
                             </div>
