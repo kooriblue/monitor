@@ -1,19 +1,19 @@
 import React, { Component } from 'react';
 import { connect } from 'dva';
 import { formatMessage, FormattedMessage } from 'umi/locale';
-import Link from 'umi/link';
-import { Checkbox, Alert, Icon, message } from 'antd';
+// import Link from 'umi/link';
+import { Alert } from 'antd';
 import Login from '@/components/Login';
 import styles from './Login.less';
-import { setAuthority } from '@/utils/authority';
-import reqwest from 'reqwest';
-import moment from 'moment';
-import 'moment/locale/zh-cn';
-moment.locale('zh-cn');
-import md5 from 'js-md5';
-import { passwordSalt } from '../../../settings';
+// import { setAuthority } from '@/utils/authority';
+// import reqwest from 'reqwest';
+// import moment from 'moment';
+// import 'moment/locale/zh-cn';
+// moment.locale('zh-cn');
+// import md5 from 'js-md5';
+// import { passwordSalt } from '../../../settings';
 
-const { Tab, UserName, Password, Mobile, Captcha, Submit } = Login;
+const { Tab, UserName, Password, Submit } = Login;
 
 @connect(({ login, loading }) => ({
     login,
@@ -46,40 +46,40 @@ class LoginPage extends Component {
     handleSubmit = (err, values) => {
         const { type } = this.state;
         if (!err) {
-            // const { dispatch } = this.props;
-            // dispatch({
-            //   type: 'login/login',
-            //   payload: {
-            //     ...values,
-            //     type,
-            //   },
-            // });
+            const { dispatch } = this.props;
+            dispatch({
+              type: 'login/login',
+              payload: {
+                ...values,
+                type,
+              },
+            });
 
-            reqwest({
-                url: '/proxy/user/loginRequest',
-                method: 'post',
-                data: {
-                    userName: values.userName,
-                    password: md5(md5(passwordSalt + values.password)),
-                },
-                type: 'json',
-            }).then((data) => {
-                var res = JSON.parse(data.response);
+            // reqwest({
+            //     url: '/proxy/user/loginRequest',
+            //     method: 'post',
+            //     data: {
+            //         userName: values.userName,
+            //         password: md5(md5(passwordSalt + values.password)),
+            //     },
+            //     type: 'json',
+            // }).then((data) => {
+            //     var res = JSON.parse(data.response);
               
-                if (res.code == 200) {
-                    var loginDate = moment().format('YYYY/MM/DD HH:mm:ss');
+            //     if (res.code == 200) {
+                    // var loginDate = moment().format('YYYY/MM/DD HH:mm:ss');
 
-                    //设置当前登录用户和权限后，就可以跳转到指定页面
-                    localStorage.setItem('adminName', values.userName);
-                    localStorage.setItem('cellmonitor-loginDate', loginDate);
+                    // //设置当前登录用户和权限后，就可以跳转到指定页面
+                    // localStorage.setItem('adminName', values.userName);
+                    // localStorage.setItem('cellmonitor-loginDate', loginDate);
                     
-                    setAuthority('admins');
-                    //登陆成功后跳转到首页
-                    window.location.href='/';
-                } else if (res.code == 400) {
-                    message.error(formatMessage({ id: "app.login-wrong" }), 1);
-                }
-            })
+                    // setAuthority('admins');
+                    // //登陆成功后跳转到首页
+                    // window.location.href='/';
+            //     } else if (res.code == 400) {
+            //         message.error(formatMessage({ id: "app.login-wrong" }), 1);
+            //     }
+            // })
         }
     };
 
