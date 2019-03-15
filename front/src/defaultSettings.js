@@ -9,5 +9,5 @@ module.exports = {
   menu: {
     disableLocal: false,
   },
-  title: 'Cell Monitor',  //pages' title
+  title: 'Monitor',  //pages' title
 };
