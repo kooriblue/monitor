@@ -1,5 +1,4 @@
 // 代码中会兼容本地 service mock 以及部署站点的静态数据
-import request from 'request';
 
 export default {
   // 支持值为 Object 和 Array
@@ -77,42 +76,20 @@ export default {
   'POST /api/login/account': (req, res) => {
     const { password, userName, type } = req.body;
 
-    if (password === 'ant.design' && userName === 'admin') {
+    if (password === 'kooriblue' && userName === 'koori') {
       res.send({
         status: 'ok',
         type,
-        currentAuthority: 'admin',
+        currentAuthority: 'admins',
+        userName: 'admin',
       });
       return;
     }
-    if (password === 'ant.design' && userName === 'user') {
-      res.send({
-        status: 'ok',
-        type,
-        currentAuthority: 'user',
-      });
-      return;
-    }
-    // res.send({
-    //   status: 'error',
-    //   type,
-    //   currentAuthority: 'guest',
-    // });
-    // request({
-    //   url: "http://127.0.0.1:8061/api/activation/code/loginRequest",
-    //   method: "POST",
-    //   qs: {
-    //       userName: userName,
-    //       password: password
-    //   }
-    // }, (error, response, body) => {
-    //   res.send({
-    //     status: 'ok',
-    //     type,
-    //     currentAuthority: 'admin',
-    //   });
-    //   return;
-    // });
+    res.send({
+      status: 'error',
+      type,
+      currentAuthority: 'guest',
+    });
   },
   'POST /api/register': (req, res) => {
     res.send({ status: 'ok', currentAuthority: 'user' });
