@@ -2,8 +2,11 @@ import { routerRedux } from 'dva/router';
 import { stringify } from 'qs';
 import { fakeAccountLogin, getFakeCaptcha } from '@/services/api';
 import { setAuthority } from '@/utils/authority';
-import { getPageQuery } from '@/utils/utils';
+// import { getPageQuery } from '@/utils/utils';
 import { reloadAuthorized } from '@/utils/Authorized';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+moment.locale('zh-cn');
 
 export default {
   namespace: 'login',
@@ -21,23 +24,12 @@ export default {
       });
       // Login successfully
       if (response.status === 'ok') {
-        reloadAuthorized();
-        const urlParams = new URL(window.location.href);
-        const params = getPageQuery();
-        let { redirect } = params;
-        if (redirect) {
-          const redirectUrlParams = new URL(redirect);
-          if (redirectUrlParams.origin === urlParams.origin) {
-            redirect = redirect.substr(urlParams.origin.length);
-            if (redirect.match(/^\/.*#/)) {
-              redirect = redirect.substr(redirect.indexOf('#') + 1);
-            }
-          } else {
-            window.location.href = redirect;
-            return;
-          }
-        }
-        yield put(routerRedux.replace(redirect || '/'));
+        var loginDate = moment().format('YYYY/MM/DD HH:mm:ss');
+        //设置当前登录用户和权限后，就可以跳转到指定页面
+        localStorage.setItem('adminName', response.userName);
+        localStorage.setItem('cellmonitor-loginDate', loginDate);
+        setAuthority(response.currentAuthority);
+        window.location.href = '/';
       }
     },
 
@@ -69,7 +61,6 @@ export default {
 
   reducers: {
     changeLoginStatus(state, { payload }) {
-      setAuthority(payload.currentAuthority);
       return {
         ...state,
         status: payload.status,
