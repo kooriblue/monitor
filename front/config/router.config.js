@@ -6,8 +6,6 @@ export default [
     routes: [
       { path: '/user', redirect: '/user/login' },
       { path: '/user/login', component: './User/Login' },
-      { path: '/user/register', component: './User/Register' },
-      { path: '/user/register-result', component: './User/RegisterResult' },
     ],
   },
   // app
@@ -89,24 +87,6 @@ export default [
             name: 'product.management',
             component: './Application/ProductManagement'
           }
-        ],
-      },
-      //ActivationCode
-      {
-        path: '/activationcode',
-        name: 'activationcode',
-        icon: 'profile',
-        routes: [
-          {
-            path: '/activationcode/generate',
-            name: 'activationcode.generate',
-            component: './ActivationCode/ActivationCodeForm',
-          },
-          {
-            path: '/activationcode/show',
-            name: 'activationcode.show',
-            component: './ActivationCode/ShowActivationCode',
-          },
         ],
       },
       //Account
