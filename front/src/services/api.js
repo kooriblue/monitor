@@ -50,19 +50,6 @@ export async function fakeSubmitForm(params) {
   });
 }
 
-//提交激活信息
-export function submitActivationCodeData(params) {
-  return request('/proxy/saveData', {
-    method: 'POST',
-    qs: {
-      serviceYears: params.serviceYears,
-      serviceMonths: params.serviceMonths,
-      serviceDays: params.serviceDays,
-      serviceHours: params.serviceHours
-    }
-  })
-}
-
 export async function fakeChartData() {
   return request('/api/fake_chart_data');
 }
