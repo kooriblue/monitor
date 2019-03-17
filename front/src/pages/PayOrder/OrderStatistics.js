@@ -3,74 +3,54 @@
 import React, { PureComponent } from 'react';
 import { formatMessage, FormattedMessage } from 'umi/locale';
 import {
-    Card, Input, Button, Form, Table, DatePicker, Row, Col, Tabs, Select, message
+    Card, Table, DatePicker, Row, Col, Tabs, Select
 } from 'antd';
-// import { TimelineChart, MiniArea } from 'ant-design-pro/lib/Charts';
 import {
     G2, Chart, Geom, Axis, Tooltip,
     Coord, Legend, Label
 } from 'bizcharts';
 import DataSet from '@antv/data-set';
-
+import { connect } from 'dva';
 import reqwest from 'reqwest';
-import { changeMoneyFormat } from '@/utils/changeMoneyFormat';
-import { changeTimeFormat } from '@/utils/changeTimeFormat';
-
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './QueryOrder.less';
 import moment from 'moment';
 import 'moment/locale/zh-cn';
 moment.locale('zh-cn'); 
 
-const FormItem = Form.Item;
 const RangePicker = DatePicker.RangePicker;
 const TabPane = Tabs.TabPane;
 const Option = Select.Option;
 
-@Form.create()
+@connect(({ appinfo, payorder }) => ({
+    appinfo, payorder,
+}))
 class OrderStatistics extends PureComponent {
     state = {
-        startDate: moment().subtract(6, 'days').format('YYYY-MM-DD 00:00:00'),
-        endDate: moment().format('YYYY-MM-DD 23:59:59'),
-        dateBaseData: [], //折线图数据
-        count: 0, //折线图订单笔数
-        totalAmount: 0, //折线图订单
-
-        appBaseData: [], //饼状图数据
-        app: [],
+        startDate: moment().startOf('year').format('YYYY-MM-DD 00:00:00'),
+        endDate: moment().endOf('year').format('YYYY-MM-DD 23:59:59'),
         appBundleId: '',
-        currency: '',
+        curTab: 1,
     }
 
     componentDidMount() {
-        reqwest({
-            url: '/proxy/payorder/getAppInfo',
-            method: 'post',
-            type: 'json',
-        }).then((data) => {
-            if (typeof(data.response) == "string") {
-                var res = JSON.parse(data.response);
-                    
-                this.setState({
-                    app: res.data,
-                });
-            } else {
-                message.error(formatMessage({ id: "app.fail-get-app-list" }), 1);
-            }
-            
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'appinfo/appinfo',
         });
 
         this.fetchGroupByDate({
-            startDate: moment().subtract(6, 'days').format('YYYY-MM-DD 00:00:00'),
-            endDate: moment().format('YYYY-MM-DD 23:59:59'),
+            startDate: moment().startOf('year').format('YYYY-MM-DD 00:00:00'),
+            endDate: moment().endOf('year').format('YYYY-MM-DD 23:59:59'),
             appBundleId: '',
-            currency: '',
         });
+    }
 
-        this.fetchGroupByApp({
-            startDate: moment().subtract(6, 'days').format('YYYY-MM-DD 00:00:00'),
-            endDate: moment().format('YYYY-MM-DD 23:59:59'),
-        })
+    componentWillUnmount() {
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'payorder/clear'
+        });
     }
 
     transformDateBasedData = (startDate, endDate, data = []) => {
@@ -82,23 +62,10 @@ class OrderStatistics extends PureComponent {
             var curDate = moment(startDate).add(i, 'days');
             var curSummary = {};
             curSummary["date"] = curDate.format('YYYY-MM-DD').substr(2);
-
-            // for (var j = 0; j < this.state.app.length; j++) {
-            //     curSummary[this.state.app[j].appBundleId] = 0;
-            // }
-
-            // while (seek < data.length && data[seek].date === curDate.valueOf()) {
-            //     curSummary[data[seek]["appBundleId"]] = (data[seek]["totalAmount"] / 100).toFixed(2);
-            //     seek++;
-            // }
             
             curSummary["totalAmount"] = (0).toFixed(2);
-            curSummary["rmbTotalAmount"] = (0).toFixed(2);
-            curSummary["usdTotalAmount"] = (0).toFixed(2);
             if (seek < data.length && data[seek].date === curDate.valueOf()) {
                 curSummary["totalAmount"] = (data[seek]["totalAmount"] / 100).toFixed(2);
-                curSummary["rmbTotalAmount"] = (data[seek]["rmbTotalAmount"] == null ? (0).toFixed(2) : (data[seek]["rmbTotalAmount"] / 100).toFixed(2));
-                curSummary["usdTotalAmount"] = (data[seek]["usdTotalAmount"] == null ? (0).toFixed(2) : (data[seek]["usdTotalAmount"] / 100).toFixed(2));
                 seek++;
             }
             result.push(curSummary);
@@ -107,102 +74,81 @@ class OrderStatistics extends PureComponent {
     }
 
     fetchGroupByDate = (params = {}) => {
-        reqwest({
-            url: '/proxy/payorder/getOrderSummaryGroupByDate',
-            method: 'post',
-            data: params,
-            type: 'json',
-        }).then((data) => {
-            if (data.status == 0) {
-                var res = JSON.parse(data.response);
-                if (res.code == 200) {
-                    var dateBaseData = this.transformDateBasedData(params.startDate, params.endDate, res.data.dateOrderSummary);
-                    this.setState({
-                        dateBaseData: dateBaseData,
-                        count: res.data.orderSummary.count,
-                        totalAmount: (res.data.orderSummary.totalMoney / 100).toFixed(2),
-                    })
-                } else {
-                    this.setState({
-                        dateBaseData: [],
-                        count: 0,
-                        totalAmount: (0).toFixed(2),
-                    })
-                }
-            } else {
-                message.error(formatMessage({ id: "payorder.statistics.fail-to-get-summary-date" }), 1);
-            }
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'payorder/summaryGroupByDate',
+            payload: params,
         })
     }
 
     fetchGroupByApp = (params = {}) => {
-        reqwest({
-            url: '/proxy/payorder/getOrderSummaryGroupByApp',
-            method: 'post',
-            data: params,
-            type: 'json',
-        }).then((data) => {
-            var res = JSON.parse(data.response);
-
-            if (res.data.appOrderStatus == 0) {
-                this.setState({
-                    appBaseData: res.data.appOrderSummary,
-                })
-            } else {
-                this.setState({
-                    appBaseData: [],
-                })
-            }
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'payorder/summaryGroupByApp',
+            payload: params,
         })
+        // reqwest({
+        //     url: '/proxy/payorder/getOrderSummaryGroupByApp',
+        //     method: 'post',
+        //     data: params,
+        //     type: 'json',
+        // }).then((data) => {
+        //     var res = JSON.parse(data.response);
+
+        //     if (res.data.appOrderStatus == 0) {
+        //         this.setState({
+        //             appBaseData: res.data.appOrderSummary,
+        //         })
+        //     } else {
+        //         this.setState({
+        //             appBaseData: [],
+        //         })
+        //     }
+        // })
     }
 
-    handleTimeChange = (time, timeString) => {
+    handleTimeChange = (time) => {
         this.setState({
             startDate: time[0].format('YYYY-MM-DD 00:00:00'),
             endDate: time[1].format('YYYY-MM-DD 23:59:59'),
         })
 
-        this.fetchGroupByDate({
-            startDate: time[0].format('YYYY-MM-DD 00:00:00'),
-            endDate: time[1].format('YYYY-MM-DD 23:59:59'),
-            appBundleId: this.state.appBundleId,
-            currency: this.state.currency,
-        });
-
-        this.fetchGroupByApp({
-            startDate: time[0].format('YYYY-MM-DD 00:00:00'),
-            endDate: time[1].format('YYYY-MM-DD 23:59:59'),
-        })
+        if (this.state.curTab === 1) {
+            this.fetchGroupByDate({
+                startDate: time[0].format('YYYY-MM-DD 00:00:00'),
+                endDate: time[1].format('YYYY-MM-DD 23:59:59'),
+                appBundleId: this.state.appBundleId,
+            });
+        } else if (this.state.curTab === 2) {
+            this.fetchGroupByApp({
+                startDate: time[0].format('YYYY-MM-DD 00:00:00'),
+                endDate: time[1].format('YYYY-MM-DD 23:59:59'),
+            })
+        }
     }
 
-    handleSearch = e => {
-        const { form } = this.props;
-        e.preventDefault();
-        form.validateFieldsAndScroll((err, values) => {
-            if (!err) {
-                this.setState({
-                    currency: values.currency,
-                    appBundleId: values.appBundleId,
-                })
+    handleAppChange = (value) => {
+        this.setState({
+            appBundleId: value,
+        })
 
-                this.fetchGroupByDate({
-                    startDate: this.state.startDate,
-                    endDate: this.state.endDate,
-                    appBundleId: values.appBundleId,
-                    currency: values.currency,
-                })
-            }
+        this.fetchGroupByDate({
+            startDate: this.state.startDate,
+            endDate: this.state.endDate,
+            appBundleId: value,
         })
     }
 
     renderLineChart = () => {
-        const { 
-            form: { getFieldDecorator },
+        const {
+            payorder,
         } = this.props;
+
+        const dateBaseData = this.transformDateBasedData(this.state.startDate, this.state.endDate, payorder.dateBaseData);
 
         const dateBaseCols = {
             "date": {
-                tickCount: (this.state.dateBaseData.length >= 31 ? 15 : this.state.dateBaseData.length),
+                tickCount: (dateBaseData.length >= 31 ? 15 : dateBaseData.length),
                 range: [0.02, 0.98]
             },
             "totalAmount": {
@@ -221,71 +167,15 @@ class OrderStatistics extends PureComponent {
                 title: formatMessage({ id: "payorder.statistics.total-amount" }),
                 dataIndex: 'totalAmount',
             },
-            {
-                title: 'RMB',
-                dataIndex: 'rmbTotalAmount',
-            },
-            {
-                title: 'USD',
-                dataIndex: 'usdTotalAmount',
-            }
         ];
 
         var tableData = [];
-        for (var i = 0; i < this.state.dateBaseData.length; i++) {
-            tableData.push(this.state.dateBaseData[this.state.dateBaseData.length - i - 1]);
+        for (var i = 0; i < dateBaseData.length; i++) {
+            tableData.push(dateBaseData[dateBaseData.length - i - 1]);
         }
 
         return (
             <div>
-                {/* 选择条件 */}
-                <div className={styles.tableListForm} style={{ marginBottom: 30 }}>
-                    <Form onSubmit={this.handleSearch}>
-                        <Row gutter={{ md: 8, lg: 24, xl: 48 }}>
-                            <Col md={8} sm={24}>
-                                <FormItem label={<FormattedMessage id="device.app-bundle-id" />}>
-                                    {getFieldDecorator('appBundleId', { initialValue: "" })(
-                                        this.state.app.length == 0 ? (
-                                            <Select
-                                                placeholder={formatMessage({ id: "payorder.placeholder.app" })}
-                                            >
-                                                <Option value=""><FormattedMessage id="payorder.option" /></Option>
-                                            </Select>
-                                        ) : (
-                                            <Select
-                                                placeholder={formatMessage({ id: "payorder.placeholder.app" })}
-                                            >
-                                                <Option value=""><FormattedMessage id="payorder.statistics.all-app" /></Option>
-                                                {this.state.app.map((item, index) => {
-                                                        return <Option value={item.appBundleId}>{item.appName}</Option>
-                                                    })
-                                                }
-                                            </Select>
-                                        )
-                                    )}
-                                </FormItem>
-                            </Col>
-                            <Col md={8} sm={24}>
-                                <FormItem label={<FormattedMessage id="payorder.currency" />}>
-                                    {getFieldDecorator('currency', { initialValue: "" })(
-                                        <Select>
-                                            <Option value=""><FormattedMessage id="payorder.statistics.all-currency" /></Option>
-                                            <Option value="RMB">RMB</Option>
-                                            <Option value="USD">USD</Option>
-                                        </Select>
-                                    )}
-                                </FormItem>
-                            </Col>
-                            <Col md={8} sm={24}>
-                                <span className={styles.submitButton}>
-                                    <Button type="primary" htmlType="submit">
-                                        <FormattedMessage id="app.query" />
-                                    </Button>
-                                </span>
-                            </Col>
-                        </Row>
-                    </Form>
-                </div>
                 {/* 总数 */}
                 <div>
                     <Card className={styles.summary} bordered={false}>
@@ -294,7 +184,7 @@ class OrderStatistics extends PureComponent {
                                 <div>
                                     <div><FormattedMessage id="payorder.summary.count" /></div>
                                     <div className={styles.money}>
-                                        <div className={styles.total}>{this.state.count}</div>
+                                        <div className={styles.total}>{payorder.count}</div>
                                         <div className={styles.yuan}><FormattedMessage id="payorder.summary.bi" /></div>
                                     </div>
                                 </div>
@@ -303,7 +193,7 @@ class OrderStatistics extends PureComponent {
                                 <div>
                                     <div><FormattedMessage id="payorder.summary.total-money" /></div>
                                     <div className={styles.money}>
-                                        <div className={styles.total}>{this.state.totalAmount}</div>
+                                        <div className={styles.total}>{payorder.totalAmount}</div>
                                         <div className={styles.yuan}><FormattedMessage id="payorder.summary.yuan" /></div>
                                     </div>
                                 </div>
@@ -312,13 +202,14 @@ class OrderStatistics extends PureComponent {
                     </Card>
                 </div>
                 {/* 折线图 */}
-                {this.state.dateBaseData.length == 0 ? (
+                {dateBaseData.length == 0 ? (
                     <h3><FormattedMessage id="payorder.statistics.date-empty" /></h3>
                 ) : (
+                    <div>
                     <Chart
                         style={{ marginLeft: -30, paddingRight: 30 }}
                         height={-window.innerHeight / 4 + 600}
-                        data={this.state.dateBaseData}
+                        data={dateBaseData}
                         scale={dateBaseCols}
                         forceFit>
                         {/* 横坐标 */}
@@ -350,6 +241,7 @@ class OrderStatistics extends PureComponent {
                             }}
                         /> */}
                     </Chart>
+                    </div>
                 )}
                 {/* 直观数据 */}
                 <hr />
@@ -364,9 +256,10 @@ class OrderStatistics extends PureComponent {
 
     renderPieChart = () => {
         const { DataView } = DataSet;
+        const { payorder } = this.props;
         
         const dv = new DataView();
-        dv.source(this.state.appBaseData).transform({
+        dv.source(payorder.appBaseData).transform({
             type: "percent",
             field: "totalAmount",
             dimension: "item",
@@ -404,7 +297,7 @@ class OrderStatistics extends PureComponent {
 
         return (
             <div>
-                {this.state.appBaseData.length == 0 ? (
+                {payorder.appBaseData.length == 0 ? (
                     <h3><FormattedMessage id="payorder.statistics.date-empty" /></h3>
                 ) : (
                     <Chart
@@ -461,21 +354,33 @@ class OrderStatistics extends PureComponent {
                 <Table
                     bordered
                     columns={tableCols}
-                    dataSource={this.state.appBaseData}
+                    dataSource={payorder.appBaseData}
                 />
             </div>
         )
     }
 
     handleTabsChange = (key) => {
+        const { dispatch } = this.props;
         if (key == "1") {
-
+            this.setState({ curTab: 1 });
+            this.fetchGroupByDate({
+                startDate: this.state.startDate,
+                endDate: this.state.endDate,
+                appBundleId: '',
+            });
+    
         } else if (key == "2") {
-
+            this.setState({ curTab: 2 });
+            this.fetchGroupByApp({
+                startDate: this.state.startDate,
+                endDate: this.state.endDate,
+            })
         }
     }
 
     render() {
+        const { appinfo } = this.props;
         return (
             <PageHeaderWrapper title={<FormattedMessage id="payorder.statistics" />}>
                 <Card>
@@ -484,9 +389,8 @@ class OrderStatistics extends PureComponent {
                         onChange={this.handleTabsChange}
                         tabBarExtraContent={
                             <div className={styles.tableListForm} style={{ marginLeft: 10 }}>
-                                <span><FormattedMessage id="payorder.time-range" />: </span>
                                 <RangePicker
-                                    defaultValue={[moment().subtract(6, 'days'), moment()]}
+                                    defaultValue={[moment().startOf('year'), moment().endOf('year')]}
                                     onChange={this.handleTimeChange}
                                     ranges = {{
                                         '今天': [moment().startOf('day'), moment().endOf('day')],
@@ -498,6 +402,32 @@ class OrderStatistics extends PureComponent {
                                     }}
                                     style={{ marginLeft: 10 }}
                                 />
+                                {this.state.curTab === 1 ? (
+                                    <span style={{ marginLeft: 5 }}>
+                                        {appinfo.appInfo.length == 0 ? (
+                                            <Select
+                                                defaultValue=""
+                                                placeholder={formatMessage({ id: "payorder.placeholder.app" })}
+                                            >
+                                                <Option value=""><FormattedMessage id="payorder.option" /></Option>
+                                            </Select>
+                                        ) : (
+                                            <Select
+                                                defaultValue=""
+                                                placeholder={formatMessage({ id: "payorder.placeholder.app" })}
+                                                onChange={this.handleAppChange}
+                                            >
+                                                <Option value=""><FormattedMessage id="payorder.statistics.all-app" /></Option>
+                                                {appinfo.appInfo.map((item, index) => {
+                                                        return <Option value={item.appBundleId}>{item.appName}</Option>
+                                                    })
+                                                }
+                                            </Select>
+                                        )}
+                                    </span>
+                                ) : (
+                                    <span></span>
+                                )}
                             </div>
                         }
                     >
