@@ -15,6 +15,7 @@ app.use(createLoading());
 });
 
 app.model({ namespace: 'appinfo', ...(require('C:/koori/github/monitor/monitor/front/src/models/appinfo.js').default) });
+app.model({ namespace: 'device', ...(require('C:/koori/github/monitor/monitor/front/src/models/device.js').default) });
 app.model({ namespace: 'global', ...(require('C:/koori/github/monitor/monitor/front/src/models/global.js').default) });
 app.model({ namespace: 'list', ...(require('C:/koori/github/monitor/monitor/front/src/models/list.js').default) });
 app.model({ namespace: 'login', ...(require('C:/koori/github/monitor/monitor/front/src/models/login.js').default) });
