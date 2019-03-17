@@ -73,9 +73,9 @@ class HeaderView extends PureComponent {
         type: 'login/logout',
       });
     }
-    if (key === 'changePassword') {
-      router.push('/account/changePassword');
-    }
+    // if (key === 'changePassword') {
+    //   router.push('/account/changePassword');
+    // }
   };
 
   handleNoticeVisibleChange = visible => {
