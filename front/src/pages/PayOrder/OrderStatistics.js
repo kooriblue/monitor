@@ -11,7 +11,6 @@ import {
 } from 'bizcharts';
 import DataSet from '@antv/data-set';
 import { connect } from 'dva';
-import reqwest from 'reqwest';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
 import styles from './QueryOrder.less';
 import moment from 'moment';
