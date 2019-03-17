@@ -25,4 +25,5 @@ export default {
     "device.no-device": '设备不存在',
     "device.fail.query-device-by-user-id": '获取设备信息失败',
     "device.warn.empty-selection": '没有选中任何条件',
+    "device.pro-row": '灰色行是公司产品的会员',
 }

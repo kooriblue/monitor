@@ -25,4 +25,5 @@ export default {
     "device.no-device": 'Device does not exist.',
     "device.fail.query-device-by-user-id": 'Fail to get device\'s information',
     "device.warn.empty-selection": 'No situation is selected.',
+    "device.pro-row": 'Gray rows are members of company\'s products',
 }
