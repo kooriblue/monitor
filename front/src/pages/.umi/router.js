@@ -24,10 +24,7 @@ let routes = [
       {
         "path": "/user/login",
         "component": _dvaDynamic({
-  app: window.g_app,
-models: () => [
-  import(/* webpackChunkName: 'p__User__models__register.js' */'C:/koori/github/monitor/monitor/front/src/pages/User/models/register.js').then(m => { return { namespace: 'register',...m.default}})
-],
+  
   component: () => import(/* webpackChunkName: "p__User__Login" */'../User/Login'),
   LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
 }),
