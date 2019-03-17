@@ -4,101 +4,48 @@ import {
 } from 'antd';
 import { FormattedMessage, formatMessage } from 'umi/locale';
 import PageHeaderWrapper from '@/components/PageHeaderWrapper';
-import reqwest from 'reqwest';
 import { changeTimeFormat } from '@/utils/changeTimeFormat';
 import styles from './QueryDevice.less';
+import { connect } from 'dva';
 const FormItem = Form.Item;
 const Option = Select.Option;
 
+@connect(({ appinfo, device, loading }) => ({
+    appinfo,
+    device,
+    quering: loading.effects['device/query'],
+}))
 @Form.create()
 class QueryDevice extends PureComponent {
     state = {
         deviceDtl: false,
-        loading: false,
-        pagination: {},
-
-        deviceData: [],
         curDevice: {},
-        app: [],
-        
-        userId: '',
-        appBundleId: '',
     };
 
     componentDidMount() {
-        reqwest({
-            url: '/proxy/payorder/getAppInfo',
-            method: 'post',
-            type: 'json',
-        }).then((data) => {
-            if (typeof(data.response) == "string") {
-                var res = JSON.parse(data.response);
-                    
-                this.setState({
-                    app: res.data,
-                });
-            } else {
-                message.error(formatMessage({ id: "app.fail-get-app-list" }), 1);
-            }
-        });
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'appinfo/appinfo',
+        })
     }
 
     componentWillUnmount() {
-        this.setState({
-            deviceDtl: false,
-            loading: false,
-            pagination: {},
-
-            deviceData: [],
-            curDevice: {},
-            app: [],
-            
-            userId: '',
-            appBundleId: '',
+        const { dispatch } = this.props;
+        dispatch({
+            type: 'device/clear'
         })
     }
 
     fetch = (params = {}) => {
+        const { dispatch } = this.props;
         if (params.appBundleId == "" && params.userId == "") {
             message.warn(formatMessage({ id: "device.warn.empty-selection" }), 1);
         } else {
-            this.setState({ loading: true });
-            reqwest({
-                url: '/proxy/device/queryDevice',
-                method: 'post',
-                data: {
-                    page: 1,
-                    size: 10,
-                    ...params,
-                },
-                type: 'json',
-            }).then((data) => {
-                if (data.status == 1) {
-                    message.error(formatMessage({ id: "device.fail.query-device" }), 1);
-                } else if (data.status == 0) {
-                    const pagination = { ...this.state.pagination };
-                    var res = JSON.parse(data.response);
-                    pagination.total = res.data.total;
-
-                    this.setState({
-                        loading: false,
-                        deviceData: res.data.list,
-                        pagination,
-                    })
-                }
+            dispatch({
+                type: 'device/query',
+                payload: params,
             })
         }
-    }
-
-    handleTableChange = (pagination, filters, sorter) => {
-        const pager = { ...this.state.pagination };
-        pager.current = pagination.current;
-        this.setState({ pagination: pager });
-        this.fetch({
-            page: pagination.current,
-            userId: this.state.userId,
-            appBundleId: this.state.appBundleId,
-        })
     }
 
     handleSearch = e => {
@@ -106,11 +53,6 @@ class QueryDevice extends PureComponent {
         e.preventDefault();
         form.validateFieldsAndScroll((err, values) => {
             if (!err) {
-                this.setState({
-                    userId: (((values.userId === null) || (typeof(values.userId) == "undefined"))? '':values.userId),
-                    appBundleId: (((values.appBundleId === null) || (typeof(values.appBundleId) == "undefined"))? '':values.appBundleId),
-                })
-
                 this.fetch({
                     userId: (((values.userId === null) || (typeof(values.userId) == "undefined"))? '':values.userId),
                     appBundleId: (((values.appBundleId === null) || (typeof(values.appBundleId) == "undefined"))? '':values.appBundleId),
@@ -122,6 +64,9 @@ class QueryDevice extends PureComponent {
     renderInitialPage = () => {
         const {
             form: { getFieldDecorator },
+            quering,
+            device,
+            appinfo,
         } = this.props;
 
         var columns = [
@@ -132,8 +77,8 @@ class QueryDevice extends PureComponent {
             },
             {
                 title: formatMessage({ id: "device.device-id" }),
-                dataIndex: 'deviceId',
-                width: '27.5%'
+                dataIndex: 'adId',
+                width: '18%'
             },
             {
                 title: formatMessage({ id: "device.platform" }),
@@ -144,6 +89,12 @@ class QueryDevice extends PureComponent {
                 title: formatMessage({ id: "device.app-bundle-id" }),
                 dataIndex: 'appBundleId',
                 width: '18%',
+            },
+            {
+                title: formatMessage({ id: "member.create-time" }),
+                dataIndex: 'createTime',
+                width: '18%',
+                render: text => <span>{changeTimeFormat(text)}</span>
             },
             {
                 dataIndex: 'operation',
@@ -177,14 +128,14 @@ class QueryDevice extends PureComponent {
                             <Col md={8} sm={24}>
                                 <FormItem label={<FormattedMessage id="payorder.application" />}>
                                     {getFieldDecorator('appBundleId')(
-                                        this.state.app.length == 0 ? (
+                                        appinfo.appInfo.length == 0 ? (
                                             <Select placeholder={formatMessage({ id: "payorder.placeholder.app" })} >
                                                 <Option value=""><FormattedMessage id="payorder.option" /></Option>
                                             </Select>
                                         ) : (
                                             <Select placeholder={formatMessage({ id: "payorder.placeholder.app" })} >
                                                 <Option value=""><FormattedMessage id="payorder.option" /></Option>
-                                                {this.state.app.map((item, index) => {
+                                                {appinfo.appInfo.map((item, index) => {
                                                         return <Option value={item.appBundleId}>{item.appName}</Option>
                                                     })
                                                 }
@@ -206,10 +157,9 @@ class QueryDevice extends PureComponent {
                     <Table
                         bordered
                         columns={columns}
-                        dataSource={this.state.deviceData}
-                        pagination={this.state.pagination}
-                        loading={this.state.loading}
-                        onChange={this.handleTableChange}
+                        dataSource={device.deviceData}
+                        pagination={{ pageSize: 10 }}
+                        loading={quering}
                     />
                 </div>
             </Card>
@@ -240,64 +190,12 @@ class QueryDevice extends PureComponent {
                 "dataIndex": device["appBundleId"],
             },
             {
-                "title": formatMessage({ id: "device.app-version-code" }),
-                "dataIndex": device["appVersionCode"],
-            },
-            {
-                "title": formatMessage({ id: "device.app-version-name" }),
-                "dataIndex": device["appVersionName"],
-            },
-            {
-                "title": formatMessage({ id: "device.channel-id" }),
-                "dataIndex": device["channelId"],
-            },
-            {
-                "title": formatMessage({ id: "device.client-message" }),
-                "dataIndex": device["clientMessage"],
-            },
-            {
                 "title": formatMessage({ id: "member.create-time" }),
                 "dataIndex": changeTimeFormat(device["createTime"]),
             },
             {
-                "title": formatMessage({ id: "device.device-id" }),
-                "dataIndex": device["deviceId"],
-            },
-            {
-                "title": formatMessage({ id: "member.expired-time" }),
-                "dataIndex": changeTimeFormat(device["expiredTime"]),
-            },
-            {
                 "title": formatMessage({ id: "device.is-pro" }),
                 "dataIndex": (device["isPro"] ? formatMessage({ id: "app.true" }) : formatMessage({ id: "app.false" })),
-            },
-            {
-                "title": formatMessage({ id: "device.jailbreak-flag" }),
-                "dataIndex": device["jailbreakFlag"],
-            },
-            {
-                "title": formatMessage({ id: "device.last-report-time" }),
-                "dataIndex": changeTimeFormat(device["lastReportTime"]),
-            },
-            {
-                "title": formatMessage({ id: "device.manufacturer" }),
-                "dataIndex": device["manufacturer"],
-            },
-            {
-                "title": formatMessage({ id: "member.member-id" }),
-                "dataIndex": device["memberId"],
-            },
-            {
-                "title": formatMessage({ id: "device.operator-name" }),
-                "dataIndex": device["operatorName"],
-            },
-            {
-                "title": formatMessage({ id: "device.os-device-code" }),
-                "dataIndex": device["osDeviceCode"],
-            },
-            {
-                "title": formatMessage({ id: "device.os-name" }),
-                "dataIndex": device["osName"],
             },
             {
                 "title": formatMessage({ id: "device.os-version" }),
