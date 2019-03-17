@@ -2,7 +2,6 @@
 
 # dependencies
 front/node_modules
-server/node_modules
 
 # production
 front/dist
