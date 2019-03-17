@@ -1229,7 +1229,7 @@ const orderInfo = [
 
 export default {
     'POST /order/getOrderInfo': (req, res) => {
-        const { page, size, startTime, endTime, appname, currency } = req.body;
+        const { startTime, endTime, appname, currency } = req.body;
         var start = moment(startTime).valueOf();
         var end = moment(endTime).valueOf();
         var result = [];
@@ -1271,7 +1271,7 @@ export default {
         } else {
             for (var index = 0; index < orderInfo.length; index++) {
                 var order = orderInfo[index];
-                if (order.orderStatus == 200) {
+                if (order.orderStatus === 200) {
                     if (order.finishTime >= start && order.finishTime <= end) {
                         if (order.appBundleId == appname && order.productPayCurrency == currency) {
                             result.push(order);
@@ -1281,18 +1281,136 @@ export default {
                 }
             }
         }
-        var length = result.length;
-        var totalPages = Math.ceil(length / size);
-        var orderData = [];
-        if (page < totalPages) {
-            orderData = result.slice((page - 1) * size, page * size);
-        } else if (page == totalPages) {
-            orderData = result.slice((page - 1) * size, length);
-        }
         res.send({
-            total: length,
             totalMoney,
-            orderData,
+            orderData: result,
         });
+    },
+    'POST /order/getOrderSummaryGroupByDate': (req, res) => {
+        var orders = orderInfo.concat().reverse();
+        const { startDate, endDate, appBundleId } = req.body;
+        var start = moment(startDate).valueOf();
+        var end = moment(endDate).valueOf();
+        var dateBaseData = [];
+        var count = 0;
+        var totalAmount = 0;
+
+        var curStart = undefined;
+        var curEnd = undefined;
+        var curData = {
+            "date": undefined,
+            "totalAmount": 0,
+        };
+
+        if (appBundleId == '') {
+            for (var i = 0; i < orders.length; i++) {
+                var order = orders[i];
+                if (order.orderStatus === 200) {
+                    if (order.finishTime <= end && order.finishTime >= start) {
+                        count = count + 1;
+                        totalAmount = totalAmount + order.productPayAmount;
+                        if (curStart === undefined && curEnd === undefined) {
+                            //the first date that match the range
+                            curStart = moment(order.finishTime).startOf('day');
+                            curEnd = moment(order.finishTime).endOf('day');
+                            curData.date = curStart.valueOf();
+                            curData.totalAmount = curData.totalAmount + order.productPayAmount;
+                            continue;
+                        }
+
+                        if (order.finishTime <= curEnd.valueOf() && order.finishTime >= curStart.valueOf()) {
+                            // if order is finished on the current date
+                            curData.totalAmount = curData.totalAmount + order.productPayAmount;
+                        } else {
+                            // if order is finished on another day
+                            dateBaseData.push(curData);
+                            curStart = moment(order.finishTime).startOf('day');
+                            curEnd = moment(order.finishTime).endOf('day');
+                            curData = {
+                                "date": undefined,
+                                "totalAmount": 0,
+                            }
+                            curData.date = curStart.valueOf();
+                            curData.totalAmount = order.productPayAmount;
+                        }
+                    }
+                }
+            }
+            dateBaseData.push(curData);
+        } else {
+            for (var i = 0; i < orders.length; i++) {
+                var order = orders[i];
+                if (order.orderStatus === 200) {
+                    if (order.finishTime <= end && order.finishTime >= start) {
+                        if (order.appBundleId == appBundleId) {
+                            count = count + 1;
+                            totalAmount = totalAmount + order.productPayAmount;
+                            if (curStart === undefined && curEnd === undefined) {
+                                //the first date that match the range
+                                curStart = moment(order.finishTime).startOf('day');
+                                curEnd = moment(order.finishTime).endOf('day');
+                                curData.date = curStart.valueOf();
+                                curData.totalAmount = curData.totalAmount + order.productPayAmount;
+                                continue;
+                            }
+
+                            if (order.finishTime <= curEnd.valueOf() && order.finishTime >= curStart.valueOf()) {
+                                // if order is finished on the current date
+                                curData.totalAmount = curData.totalAmount + order.productPayAmount;
+                            } else {
+                                // if order is finished on another day
+                                dateBaseData.push(curData);
+                                curStart = moment(order.finishTime).startOf('day');
+                                curEnd = moment(order.finishTime).endOf('day');
+                                curData = {
+                                    "date": undefined,
+                                    "totalAmount": 0,
+                                }
+                                curData.date = curStart.valueOf();
+                                curData.totalAmount = order.productPayAmount;
+                            }
+                        }
+                    }
+                }
+            }
+            dateBaseData.push(curData);
+        }
+
+        res.send({
+            dateBaseData,
+            count,
+            totalAmount: (totalAmount / 100).toFixed(2),
+        })
+    },
+    'POST /order/getOrderSummaryGroupByApp': (req, res) => {
+        const { startDate, endDate } = req.body;
+        var appBaseData = [];
+        var apps = [];
+
+        for (var i = 0; i < orderInfo.length; i++) {
+            var order = orderInfo[i];
+            if (order.orderStatus === 200) {
+                if (order.finishTime >= moment(startDate).valueOf() && order.finishTime <= moment(endDate).valueOf()) {
+                    if (!apps.includes(order.appBundleId)) {
+                        apps.push(order.appBundleId);
+                        appBaseData.push({
+                            item: order.appBundleId,
+                            totalAmount: order.productPayAmount
+                        });
+                    } else {
+                        for (var j = 0; j < appBaseData.length; j++) {
+                            if (appBaseData[j].item === order.appBundleId) {
+                                appBaseData[j].totalAmount = appBaseData[j].totalAmount + order.productPayAmount;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        res.send({
+            appBaseData,
+        })
     }
 }
