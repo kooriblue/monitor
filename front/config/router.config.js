@@ -32,11 +32,11 @@ export default [
             name: 'payorder.statistics',
             component: './PayOrder/OrderStatistics',
           },
-          {
-            path: '/payorder/refundList',
-            name: 'payorder.refund-list',
-            component: './PayOrder/RefundList',
-          }
+          // {
+          //   path: '/payorder/refundList',
+          //   name: 'payorder.refund-list',
+          //   component: './PayOrder/RefundList',
+          // }
         ],
       },
       //Device
@@ -52,56 +52,56 @@ export default [
           },
         ],
       },
-      //Member
-      {
-        path: '/member',
-        name: 'member',
-        icon: 'team',
-        routes: [
-          {
-            path: '/member/query',
-            name: 'member.query',
-            component: './Member/QueryMember',
-          },
-          {
-            path: '/member/add',
-            name: 'member.add',
-            component: './Member/AddMember',
-          },
-          //License
-          {
-            path: '/member/transferLicense',
-            name: 'license.transfer-license',
-            component: './Member/TransferLicense',
-          },
-        ],
-      },
-      //Application Management
-      {
-        path: '/application',
-        name: 'application',
-        icon: 'appstore',
-        routes: [
-          {
-            path: '/application/product',
-            name: 'product.management',
-            component: './Application/ProductManagement'
-          }
-        ],
-      },
-      //Account
-      {
-        path: '/account',
-        name: 'menu.account',
-        icon: 'user',
-        routes: [
-          {
-            path: '/account/changePassword',
-            name: 'menu.account.change-password',
-            component: './Account/ChangePassword',
-          }
-        ],
-      },
+      // //Member
+      // {
+      //   path: '/member',
+      //   name: 'member',
+      //   icon: 'team',
+      //   routes: [
+      //     {
+      //       path: '/member/query',
+      //       name: 'member.query',
+      //       component: './Member/QueryMember',
+      //     },
+      //     {
+      //       path: '/member/add',
+      //       name: 'member.add',
+      //       component: './Member/AddMember',
+      //     },
+      //     //License
+      //     {
+      //       path: '/member/transferLicense',
+      //       name: 'license.transfer-license',
+      //       component: './Member/TransferLicense',
+      //     },
+      //   ],
+      // },
+      // //Application Management
+      // {
+      //   path: '/application',
+      //   name: 'application',
+      //   icon: 'appstore',
+      //   routes: [
+      //     {
+      //       path: '/application/product',
+      //       name: 'product.management',
+      //       component: './Application/ProductManagement'
+      //     }
+      //   ],
+      // },
+      // //Account
+      // {
+      //   path: '/account',
+      //   name: 'menu.account',
+      //   icon: 'user',
+      //   routes: [
+      //     {
+      //       path: '/account/changePassword',
+      //       name: 'menu.account.change-password',
+      //       component: './Account/ChangePassword',
+      //     }
+      //   ],
+      // },
       //404
       {
         component: '404',
