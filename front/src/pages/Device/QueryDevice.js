@@ -152,6 +152,9 @@ class QueryDevice extends PureComponent {
                         </Row>
                     </Form>
                 </div>
+                <div style={{ color: 'rgba(103, 125, 221, 0.795)' }}>
+                    * <FormattedMessage id="device.pro-row" />
+                </div>
                 {/* 表格部分 */}
                 <div>
                     <Table
@@ -160,10 +163,15 @@ class QueryDevice extends PureComponent {
                         dataSource={device.deviceData}
                         pagination={{ pageSize: 10 }}
                         loading={quering}
+                        rowClassName={this.handleProRow}
                     />
                 </div>
             </Card>
         )
+    }
+
+    handleProRow = (record, index) => {
+        return (record["isPro"] ? styles.enabledRow : styles.unenabledRow);
     }
 
     handleDeviceDetails = (record) => {
