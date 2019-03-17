@@ -29,7 +29,7 @@ export default {
         localStorage.setItem('adminName', response.userName);
         localStorage.setItem('cellmonitor-loginDate', loginDate);
         setAuthority(response.currentAuthority);
-        window.location.href = '/';
+        window.location.href = '/payorder/query';
       }
     },
 
@@ -38,16 +38,17 @@ export default {
     },
 
     *logout(_, { put }) {
-      localStorage.setItem('adminName', '');
-      localStorage.setItem('loginDate', '');
       yield put({
         type: 'changeLoginStatus',
         payload: {
-          status: false,
-          currentAuthority: 'guest',
+          status: undefined,
+          type: 'account',
         },
       });
-      reloadAuthorized();
+      localStorage.setItem('adminName', '');
+      localStorage.setItem('cellmonitor-loginDate', '');
+      setAuthority('guest');
+
       yield put(
         routerRedux.push({
           pathname: '/user/login',
