@@ -11,7 +11,7 @@ export default {
     "payorder.member-id": '成员id',
     "payorder.message": '留言',
     "payorder.order-id": '订单id',
-    "payorder.pay-channel-id": '支付方式id',
+    "payorder.pay-channel-id": '支付方式',
     "payorder.pay-nonce": 'Pay Nonce',
     "payorder.pay-notification": '支付通知',
     "payorder.pay-notify-id": '支付通知id',

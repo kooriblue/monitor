@@ -11,7 +11,7 @@ export default {
     "payorder.member-id": 'Member ID',
     "payorder.message": 'Message',
     "payorder.order-id": 'Order ID',
-    "payorder.pay-channel-id": 'Pay Channel ID',
+    "payorder.pay-channel-id": 'Pay Channel',
     "payorder.pay-nonce": 'Pay Nonce',
     "payorder.pay-notification": 'Pay Notification',
     "payorder.pay-notify-id": 'Pay Notify ID',
