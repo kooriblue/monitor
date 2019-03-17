@@ -81,16 +81,6 @@ models: () => [
             "exact": true
           },
           {
-            "path": "/payorder/refundList",
-            "name": "payorder.refund-list",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../PayOrder/RefundList'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
             "component": () => React.createElement(require('C:/koori/github/monitor/monitor/front/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
           }
         ]
@@ -106,86 +96,6 @@ models: () => [
             "component": _dvaDynamic({
   
   component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Device/QueryDevice'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "component": () => React.createElement(require('C:/koori/github/monitor/monitor/front/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
-          }
-        ]
-      },
-      {
-        "path": "/member",
-        "name": "member",
-        "icon": "team",
-        "routes": [
-          {
-            "path": "/member/query",
-            "name": "member.query",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Member/QueryMember'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "path": "/member/add",
-            "name": "member.add",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Member/AddMember'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "path": "/member/transferLicense",
-            "name": "license.transfer-license",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Member/TransferLicense'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "component": () => React.createElement(require('C:/koori/github/monitor/monitor/front/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
-          }
-        ]
-      },
-      {
-        "path": "/application",
-        "name": "application",
-        "icon": "appstore",
-        "routes": [
-          {
-            "path": "/application/product",
-            "name": "product.management",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Application/ProductManagement'),
-  LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
-}),
-            "exact": true
-          },
-          {
-            "component": () => React.createElement(require('C:/koori/github/monitor/monitor/front/node_modules/umi-build-dev/lib/plugins/404/NotFound.js').default, { pagesPath: 'src/pages', hasRoutesInConfig: true })
-          }
-        ]
-      },
-      {
-        "path": "/account",
-        "name": "menu.account",
-        "icon": "user",
-        "routes": [
-          {
-            "path": "/account/changePassword",
-            "name": "menu.account.change-password",
-            "component": _dvaDynamic({
-  
-  component: () => import(/* webpackChunkName: "layouts__BasicLayout" */'../Account/ChangePassword'),
   LoadingComponent: require('C:/koori/github/monitor/monitor/front/src/components/PageLoading/index').default,
 }),
             "exact": true
