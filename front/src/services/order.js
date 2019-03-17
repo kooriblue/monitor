@@ -6,3 +6,17 @@ export async function getOrderInfo(params) {
         body: params,
     });
 }
+
+export async function getOrderSummaryGroupByDate(params) {
+    return request('/order/getOrderSummaryGroupByDate', {
+        method: 'POST',
+        body: params,
+    });
+}
+
+export async function getOrderSummaryGroupByApp(params) {
+    return request('/order/getOrderSummaryGroupByApp', {
+        method: 'POST',
+        body: params,
+    })
+}
