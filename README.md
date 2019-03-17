@@ -3,9 +3,7 @@
 
 <hr />
 
-After downloading or cloning the package, input `npm install` command under the *front* folder to install the modules.
-
-Download finished, input `npm run start` or `yarn start` to start the service.
+After downloading or cloning the package, input `yarn start` command under the *front* folder to start the service.
 
 <hr />
 
