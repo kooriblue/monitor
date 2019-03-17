@@ -1,12 +1,23 @@
-import { getOrderInfo } from '@/services/order';
+import { 
+    getOrderInfo, 
+    getOrderSummaryGroupByDate,
+    getOrderSummaryGroupByApp
+} from '@/services/order';
 
 export default {
     namespace: 'payorder',
 
     state: {
         orderData: [],
-        pagination: {},
         totalMoney: 0,
+
+        // line chart tab data
+        dateBaseData: [],
+        count: 0,
+        totalAmount: (0).toFixed(2),
+
+        // pie chart tab data
+        appBaseData: [],
     },
 
     effects: {
@@ -17,16 +28,27 @@ export default {
                 payload: response,
             });
         },
+        *summaryGroupByDate({ payload }, { call, put }) {
+            const response = yield call(getOrderSummaryGroupByDate, payload);
+            yield put({
+                type: 'saveDateBaseData',
+                payload: response,
+            })
+        },
+        *summaryGroupByApp({ payload }, { call, put }) {
+            const response = yield call(getOrderSummaryGroupByApp, payload);
+            yield put({
+                type: 'saveAppBaseData',
+                payload: response,
+            })
+        }
     },
 
     reducers: {
         saveOrderInfo(state, { payload }) {
-            const pagination =  { ...state.pagination};
-            pagination.total = payload.total;
             return {
                 ...state,
                 orderData: payload.orderData,
-                pagination: pagination,
                 totalMoney: (payload.totalMoney * 1.0 / 100).toFixed(2),
             }
         },
@@ -36,5 +58,31 @@ export default {
                 ...payload,
             }
         },
+        saveDateBaseData(state, { payload }) {
+            return {
+                ...state,
+                ...payload,
+            }
+        },
+        saveAppBaseData(state, { payload }) {
+            return {
+                ...state,
+                ...payload,
+            }
+        },
+        clear() {
+            return {
+                orderData: [],
+                totalMoney: 0,
+
+                // line chart tab data
+                dateBaseData: [],
+                count: 0,
+                totalAmount: (0).toFixed(2),
+        
+                // pie chart tab data
+                appBaseData: [],
+            }
+        }
     }
 }
