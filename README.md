@@ -1,9 +1,9 @@
 # monitor
-*This demo provides pages used to query information about orders and devices.*
+*This demo provides pages used to manage information about products.*
 
 <hr />
 
-After downloading or cloning the package, input `yarn start` command under the *front* folder to start the service.
+After downloading or cloning the package, input `npm install`  command under the **front** folder to download the dependencies first. When download is finished, input  `yarn start` command to start the service.
 
 <hr />
 
