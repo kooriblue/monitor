@@ -149,12 +149,14 @@ export default {
                     deviceData.push(deviceInfo[i]);
                 }
             }
-        } else {
+        } else if (!(userId === '') && !(appBundleId === '')) {
             for (var i = 0; i < deviceInfo.length; i++) {
                 if (deviceInfo[i].appBundleId === appBundleId && deviceInfo[i].userId.includes(userId)) {
                     deviceData.push(deviceInfo[i]);
                 }
             }
+        } else {
+            deviceData = deviceInfo;
         }
 
         res.send({
