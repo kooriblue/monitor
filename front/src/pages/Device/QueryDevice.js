@@ -27,6 +27,8 @@ class QueryDevice extends PureComponent {
         dispatch({
             type: 'appinfo/appinfo',
         })
+
+        this.fetch({ userId: '', appBundleId: '' });
     }
 
     componentWillUnmount() {
@@ -38,14 +40,10 @@ class QueryDevice extends PureComponent {
 
     fetch = (params = {}) => {
         const { dispatch } = this.props;
-        if (params.appBundleId == "" && params.userId == "") {
-            message.warn(formatMessage({ id: "device.warn.empty-selection" }), 1);
-        } else {
-            dispatch({
-                type: 'device/query',
-                payload: params,
-            })
-        }
+        dispatch({
+            type: 'device/query',
+            payload: params,
+        })
     }
 
     handleSearch = e => {
